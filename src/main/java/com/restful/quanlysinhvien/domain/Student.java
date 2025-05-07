@@ -4,12 +4,9 @@ import com.restful.quanlysinhvien.domain.domain_enum.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import java.time.LocalDate;s
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "students")
@@ -17,6 +14,7 @@ import java.time.LocalDate;s
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
