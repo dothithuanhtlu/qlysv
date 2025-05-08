@@ -9,6 +9,8 @@ import com.restful.quanlysinhvien.util.error.IdValidationException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -21,39 +23,86 @@ import java.util.List;
 public class StudentController {
     private final StudentService studentService;
 
+    /**
+     * Lấy danh sách tất cả sinh viên.
+     *
+     * @return {@link ResponseEntity} chứa danh sách các đối tượng
+     *         {@link StudentDTO}
+     */
     @GetMapping(value = "/students")
     public ResponseEntity<List<StudentDTO>> getAllStudents() {
         return ResponseEntity.ok(this.studentService.getAllStu());
     }
 
+    /**
+     * Lấy thông tin sinh viên theo mã sinh viên.
+     *
+     * @param stuCode mã sinh viên duy nhất
+     * @return {@link ResponseEntity} chứa đối tượng {@link StudentDTO}
+     * @throws IdValidationException nếu mã sinh viên không hợp lệ hoặc không tìm
+     *                               thấy
+     */
     @GetMapping(value = "/students/{stuCode}")
     public ResponseEntity<StudentDTO> getStudentByStuCode(
-            @PathVariable("stuCode") @NotBlank(message = "Student code must not be empty") String stuCode) throws IdValidationException {
+            @PathVariable("stuCode") @NotBlank(message = "Student code must not be empty") String stuCode)
+            throws IdValidationException {
         StudentDTO studentDTO = this.studentService.getStuByStuCode(stuCode);
         return ResponseEntity.ok(studentDTO);
     }
 
+    /**
+     * Xóa sinh viên theo mã sinh viên.
+     *
+     * @param stuCode mã sinh viên duy nhất
+     * @return {@link ResponseEntity} rỗng với mã trạng thái HTTP 200
+     * @throws IdValidationException nếu mã sinh viên không hợp lệ hoặc không tìm
+     *                               thấy
+     */
     @DeleteMapping(value = "/students/{stuCode}")
     public ResponseEntity<Void> deleteStudentByStuCode(
-            @PathVariable("stuCode") @NotBlank(message = "Student code must not be empty") String stuCode) throws IdValidationException {
+            @PathVariable("stuCode") @NotBlank(message = "Student code must not be empty") String stuCode)
+            throws IdValidationException {
         this.studentService.deleteStuByStuCode(stuCode);
-        return ResponseEntity.ok(null);
+        // return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
+    /**
+     * Cập nhật thông tin sinh viên theo mã sinh viên.
+     *
+     * @param stuCode          mã sinh viên duy nhất
+     * @param studentUpdateDTO DTO chứa thông tin cập nhật của sinh viên
+     * @return {@link ResponseEntity} rỗng với mã trạng thái HTTP 200
+     * @throws IdValidationException        nếu mã sinh viên không hợp lệ hoặc không
+     *                                      tìm thấy
+     * @throws EmailValidationException     nếu email không hợp lệ hoặc đã tồn tại
+     * @throws ClassNameValidationException nếu tên lớp không hợp lệ
+     */
     @PutMapping(value = "/students/{stuCode}")
     public ResponseEntity<Void> updateStudentByStuCode(
             @PathVariable("stuCode") @NotBlank(message = "Student code must not be empty") String stuCode,
             @Valid @RequestBody StudentUpdateDTO studentUpdateDTO)
-    throws IdValidationException, EmailValidationException, ClassNameValidationException {
+            throws IdValidationException, EmailValidationException, ClassNameValidationException {
         this.studentService.updateStu(studentUpdateDTO, stuCode);
-        return ResponseEntity.ok(null);
+        // return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
+    /**
+     * Tạo mới một sinh viên.
+     * ném ra ConstraintViolationException
+     * 
+     * @param studentDTO DTO chứa thông tin sinh viên mới
+     * @return {@link ResponseEntity} chứa đối tượng {@link StudentDTO} đã tạo
+     * @throws IdValidationException        nếu mã sinh viên không hợp lệ hoặc đã
+     *                                      tồn tại
+     * @throws EmailValidationException     nếu email không hợp lệ hoặc đã tồn tại
+     * @throws ClassNameValidationException nếu tên lớp không hợp lệ
+     */
     @PostMapping(value = "/students")
     public ResponseEntity<StudentDTO> createStudent(@Valid @RequestBody StudentDTO studentDTO)
-            throws IdValidationException, EmailValidationException, ClassNameValidationException
-    {
+            throws IdValidationException, EmailValidationException, ClassNameValidationException {
         this.studentService.createStu(studentDTO);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(studentDTO);
     }
 }

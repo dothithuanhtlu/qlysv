@@ -32,6 +32,6 @@ public class StudentDTO {
     @Pattern(regexp = "MALE|FEMALE", message = "Gender must be either MALE or FEMALE")
     private String gender;
 
-    @NotBlank(message = "Email cannot be blank")
+    @NotBlank(message = "ClassName cannot be blank")
     private String className;
 }

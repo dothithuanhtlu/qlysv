@@ -1,9 +1,9 @@
 package com.restful.quanlysinhvien.domain;
 
-import com.restful.quanlysinhvien.domain.domain_enum.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -33,8 +33,9 @@ public class Student {
 
     private LocalDate dateOfBirth;
     private String address;
-    @Enumerated(EnumType.STRING)
-    private Gender gender;
+
+    @Pattern(regexp = "MALE|FEMALE", message = "Gender must be either MALE or FEMALE")
+    private String gender;
     @ManyToOne
     @JoinColumn(name = "class_room_id")
     private ClassRoom classRoom;

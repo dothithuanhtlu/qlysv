@@ -1,6 +1,5 @@
 package com.restful.quanlysinhvien.domain.dto;
 
-import com.restful.quanlysinhvien.domain.domain_enum.Gender;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
