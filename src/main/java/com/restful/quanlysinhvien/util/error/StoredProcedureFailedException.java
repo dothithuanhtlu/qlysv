@@ -1,8 +1,8 @@
 package com.restful.quanlysinhvien.util.error;
 
 /**
- * Ngoại lệ runtime được ném khi thực thi stored procedure thất bại.
- * Sử dụng để xử lý các lỗi liên quan đến stored procedure trong hệ thống.
+ * Ngoại lệ được ném ra khi xảy ra lỗi trong quá trình thực thi stored
+ * procedure.
  */
 public class StoredProcedureFailedException extends RuntimeException {
 

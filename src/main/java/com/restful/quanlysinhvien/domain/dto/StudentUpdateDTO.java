@@ -21,11 +21,16 @@ public class StudentUpdateDTO {
     private String email;
 
     @Past(message = "Birth date must be in the past")
+    @NotNull(message = "dateOfBirth cannot be blank")
     private LocalDate dateOfBirth;
 
+    @NotBlank(message = "Address cannot be blank")
     private String address;
+
     @Pattern(regexp = "MALE|FEMALE", message = "Gender must be either MALE or FEMALE")
+    @NotBlank(message = "Gender cannot be blank")
     private String gender;
+
     @NotBlank(message = "ClassName cannot be blank")
     private String className;
 }

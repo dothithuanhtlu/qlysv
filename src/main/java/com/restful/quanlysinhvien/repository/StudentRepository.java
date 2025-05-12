@@ -1,6 +1,8 @@
 package com.restful.quanlysinhvien.repository;
 
 import com.restful.quanlysinhvien.domain.Student;
+
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,55 +11,65 @@ import org.springframework.stereotype.Repository;
 import java.util.Date;
 
 /**
- * Repository interface for managing {@link Student} entities.
- * Provides CRUD operations and custom queries for student data using Spring
- * Data JPA.
+ * Interface Repository cho việc quản lý các entity {@link Student}.
+ * Cung cấp các thao tác CRUD và các truy vấn tuỳ chỉnh cho dữ liệu sinh viên sử
+ * dụng Spring Data JPA.
  */
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
 
         /**
-         * Retrieves a student by their unique student code.
+         * Tìm sinh viên theo mã sinh viên duy nhất.
          *
-         * @param studentCode the unique code of the student
-         * @return the {@link Student} entity, or null if not found
+         * @param studentCode mã sinh viên cần tìm
+         * @return đối tượng {@link Student}, hoặc null nếu không tìm thấy
          */
         Student findOneByStudentCode(String studentCode);
 
         /**
-         * Checks if a student exists with the given student code.
+         * Kiểm tra sự tồn tại của sinh viên theo mã sinh viên.
          *
-         * @param studentCode the student code to check
-         * @return true if a student with the specified code exists, false otherwise
+         * @param studentCode mã sinh viên cần kiểm tra
+         * @return true nếu tồn tại sinh viên với mã tương ứng, false nếu không
          */
         boolean existsByStudentCode(String studentCode);
 
         /**
-         * Deletes a student by their student code.
+         * Xoá sinh viên khỏi hệ thống dựa trên mã sinh viên.
          *
-         * @param studentCode the student code of the student to delete
+         * @param studentCode mã sinh viên cần xoá
          */
         void deleteByStudentCode(String studentCode);
 
         /**
-         * Checks if a student exists with the given email.
+         * Kiểm tra sự tồn tại của sinh viên theo email.
          *
-         * @param email the email to check
-         * @return true if a student with the specified email exists, false otherwise
+         * @param email địa chỉ email cần kiểm tra
+         * @return true nếu tồn tại sinh viên với email tương ứng, false nếu không
          */
         boolean existsByEmail(String email);
 
         /**
-         * Updates a student's information using a stored procedure.
+         * Tìm sinh viên theo email.
          *
-         * @param classId     the ID of the class the student belongs to
-         * @param fullName    the full name of the student
-         * @param email       the email address of the student
-         * @param dateOfBirth the date of birth of the student
-         * @param address     the address of the student
-         * @param gender      the gender of the student
-         * @param stuCode     the unique student code
-         * @param result      the academic result of the student
+         * @param email địa chỉ email cần tìm (không được null hoặc rỗng)
+         * @return đối tượng {@link Student} nếu tìm thấy, hoặc null nếu không có sinh
+         *         viên nào với email đã cho
+         * @throws DataAccessException nếu có lỗi truy xuất cơ sở dữ liệu
+         */
+        Student findOneByEmail(String email);
+
+        /**
+         * Cập nhật thông tin sinh viên thông qua stored procedure.
+         *
+         * @param classId     ID lớp học mà sinh viên thuộc về
+         * @param fullName    họ tên sinh viên
+         * @param email       email sinh viên
+         * @param dateOfBirth ngày sinh của sinh viên
+         * @param address     địa chỉ của sinh viên
+         * @param gender      giới tính của sinh viên
+         * @param stuCode     mã sinh viên
+         * @param result      kết quả học tập của sinh viên
          */
         @Query(value = "CALL update_stu(:p_class_id, :p_full_name, :p_email, :p_date_of_birth, :p_address, :p_gender, :p_stu_code, :p_result)", nativeQuery = true)
         void updateStudent(
@@ -71,16 +83,16 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
                         @Param("p_result") Integer result);
 
         /**
-         * Creates a new student using a stored procedure.
+         * Tạo mới sinh viên bằng stored procedure.
          *
-         * @param classId     the ID of the class the student belongs to
-         * @param fullName    the full name of the student
-         * @param email       the email address of the student
-         * @param dateOfBirth the date of birth of the student
-         * @param address     the address of the student
-         * @param gender      the gender of the student
-         * @param stuCode     the unique student code
-         * @param result      the academic result of the student
+         * @param classId     ID lớp học mà sinh viên thuộc về
+         * @param fullName    họ tên sinh viên
+         * @param email       email sinh viên
+         * @param dateOfBirth ngày sinh của sinh viên
+         * @param address     địa chỉ của sinh viên
+         * @param gender      giới tính của sinh viên
+         * @param stuCode     mã sinh viên
+         * @param result      kết quả học tập của sinh viên
          */
         @Query(value = "CALL create_stu(:p_class_id, :p_full_name, :p_email, :p_date_of_birth, :p_address, :p_gender, :p_stu_code, :p_result)", nativeQuery = true)
         void createStudent(
@@ -92,4 +104,12 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
                         @Param("p_gender") String gender,
                         @Param("p_stu_code") String stuCode,
                         @Param("p_result") Integer result);
+
+        /**
+         * Gọi stored procedure để xóa sinh viên theo mã sinh viên.
+         *
+         * @param stuCode mã sinh viên cần xóa
+         */
+        @Query(value = "CALL delete_stu(:stuCode, 1)", nativeQuery = true)
+        void deleteByStudentCodeProcedure(@Param("stuCode") String stuCode);
 }

@@ -5,17 +5,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository interface for managing {@link ClassRoom} entities.
- * Provides CRUD operations and custom queries for classroom data using Spring Data JPA.
+ * Interface Repository dùng để quản lý các entity {@link ClassRoom}.
+ * Cung cấp các thao tác CRUD và truy vấn tùy chỉnh cho dữ liệu lớp học sử dụng
+ * Spring Data JPA.
  */
 @Repository
 public interface ClassRoomRepository extends JpaRepository<ClassRoom, Long> {
 
     /**
-     * Retrieves a classroom by its unique class name.
+     * Tìm lớp học dựa trên tên lớp duy nhất.
      *
-     * @param className the name of the classroom
-     * @return the {@link ClassRoom} entity, or null if not found
+     * @param className tên lớp học cần tìm
+     * @return đối tượng {@link ClassRoom}, hoặc null nếu không tìm thấy
      */
     ClassRoom findByClassName(String className);
 }

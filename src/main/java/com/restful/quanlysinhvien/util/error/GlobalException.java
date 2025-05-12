@@ -2,7 +2,6 @@ package com.restful.quanlysinhvien.util.error;
 
 import com.restful.quanlysinhvien.domain.CustomResponse;
 import jakarta.validation.ConstraintViolationException;
-
 import org.hibernate.TransactionException;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -14,43 +13,76 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
-
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
 
+/**
+ * Lớp xử lý ngoại lệ toàn cục cho các controller REST.
+ * Mỗi phương thức trong lớp này tương ứng với một loại ngoại lệ cụ thể để trả
+ * về thông báo lỗi phù hợp.
+ */
 @RestControllerAdvice
 public class GlobalException {
+
     private final Logger logger = LoggerFactory.getLogger(GlobalException.class);
 
     /**
-     * Xử lý các ngoại lệ liên quan đến xác thực ID, email và tên lớp.
+     * Xử lý ngoại lệ khi tài nguyên không được tìm thấy.
      *
-     * @param e ngoại lệ được ném (IdValidationException, EmailValidationException,
-     *          hoặc ClassNameValidationException)
-     * @return {@link ResponseEntity} chứa {@link CustomResponse} với mã trạng thái
-     *         404 và thông tin lỗi
+     * @param e Ngoại lệ ResourceNotFoundException
+     * @return ResponseEntity chứa CustomResponse với mã trạng thái 404
      */
-    @ExceptionHandler(value = { IdValidationException.class, EmailValidationException.class,
-            ClassNameValidationException.class })
-    public ResponseEntity<CustomResponse<Object>> handleIdException(Exception e) {
-        logger.error("Validation error: {}", e.getMessage(), e); // Ghi log lỗi
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<CustomResponse<Object>> handleResourceNotFound(ResourceNotFoundException e) {
+        logger.error("Data invalid(not found): {}", e.getMessage(), e);
         CustomResponse<Object> res = new CustomResponse<>();
         res.setStatusCode(HttpStatus.NOT_FOUND.value());
-        res.setError(e.getMessage());
-        res.setMessage("Data invalid!");
+        res.setError("Resource Not Found");
+        res.setMessage(e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
     }
 
     /**
-     * Xử lý ngoại lệ khi tham số đầu vào không hợp lệ (validation error).
-     * Các đối tượng DTO được gửi từ request body (thường là @RequestBody)
-     * 
-     * @param ex ngoại lệ MethodArgumentNotValidException chứa thông tin lỗi xác
-     *           thực
-     * @return {@link ResponseEntity} chứa {@link CustomResponse} với mã trạng thái
-     *         400 và danh sách lỗi
+     * Xử lý các exception kiểu BadRequestExceptionCustom khi dữ liệu yêu cầu không
+     * hợp lệ.
+     *
+     * @param e Ngoại lệ được ném ra từ controller khi dữ liệu không hợp lệ
+     * @return ResponseEntity chứa CustomResponse với mã lỗi 400 và thông báo chi
+     *         tiết
+     */
+    @ExceptionHandler(BadRequestExceptionCustom.class)
+    public ResponseEntity<CustomResponse<Object>> handleBadRequest(BadRequestExceptionCustom e) {
+        logger.error("Data invalid(bad request): {}", e.getMessage(), e);
+        CustomResponse<Object> res = new CustomResponse<>();
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        res.setError("Data invalid!");
+        res.setMessage(e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
+
+    /**
+     * Xử lý ngoại lệ khi tài nguyên đã tồn tại (xung đột).
+     *
+     * @param e Ngoại lệ DuplicateResourceException
+     * @return ResponseEntity chứa CustomResponse với mã trạng thái 409
+     */
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<CustomResponse<Object>> handleDuplicateResource(DuplicateResourceException e) {
+        logger.error("Data invalid(already exists): {}", e.getMessage(), e);
+        CustomResponse<Object> res = new CustomResponse<>();
+        res.setStatusCode(HttpStatus.CONFLICT.value());
+        res.setError("Conflict");
+        res.setMessage(e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(res);
+    }
+
+    /**
+     * Xử lý lỗi validate dữ liệu khi sử dụng annotation @Valid trên DTO.
+     *
+     * @param ex MethodArgumentNotValidException chứa thông tin lỗi validate
+     * @return ResponseEntity chứa thông báo lỗi dạng CustomResponse và mã trạng
+     *         thái 400
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<CustomResponse<Object>> validateError(MethodArgumentNotValidException ex) {
@@ -62,19 +94,19 @@ public class GlobalException {
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
         res.setError(ex.getBody().getDetail());
 
-        List<String> errors = fieldErrors.stream().map(f -> f.getDefaultMessage()).collect(Collectors.toList());
-        res.setMessage(errors.size() > 1 ? errors : errors.get(0));
+        List<String> errors = fieldErrors.stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.toList());
 
+        res.setMessage(errors.size() > 1 ? errors : errors.get(0));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 
     /**
-     * Xử lý ngoại lệ khi vi phạm ràng buộc xác thực (ConstraintViolationException).
-     * trước khi lưu vào db
-     * 
-     * @param e ngoại lệ ConstraintViolationException chứa thông tin lỗi xác thực
-     * @return {@link ResponseEntity} chứa {@link CustomResponse} với mã trạng thái
-     *         400 và danh sách lỗi
+     * Xử lý ngoại lệ khi vi phạm các ràng buộc trong entity (@NotNull, @Size, ...)
+     *
+     * @param e ConstraintViolationException
+     * @return ResponseEntity chứa CustomResponse và mã trạng thái 400
      */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<CustomResponse<Object>> handleConstraintViolation(ConstraintViolationException e) {
@@ -83,7 +115,6 @@ public class GlobalException {
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
         res.setError("Validation Error");
 
-        // Lấy toàn bộ lỗi và gộp lại
         List<String> messages = e.getConstraintViolations().stream()
                 .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
                 .collect(Collectors.toList());
@@ -93,13 +124,12 @@ public class GlobalException {
     }
 
     /**
-     * Xử lý ngoại lệ khi lớp học đầy hoặc không thể tạo/cập nhật sinh viên
-     * 
-     * @param ex ngoại lệ RuntimeException từ stored procedure
-     * @return {@link ResponseEntity} chứa {@link CustomResponse} với mã trạng thái
-     *         400
+     * Xử lý lỗi khi gọi stored procedure thất bại.
+     *
+     * @param ex RuntimeException (được ném từ stored procedure wrapper)
+     * @return ResponseEntity chứa CustomResponse và mã trạng thái 400
      */
-    @ExceptionHandler(value = { StoredProcedureFailedException.class })
+    @ExceptionHandler(StoredProcedureFailedException.class)
     public ResponseEntity<CustomResponse<Object>> handleStoredProcedureException(RuntimeException ex) {
         logger.error("Stored procedure operation failed: {}", ex.getMessage(), ex);
         CustomResponse<Object> res = new CustomResponse<>();
@@ -110,13 +140,13 @@ public class GlobalException {
     }
 
     /**
-     * Xử lý các lỗi liên quan đến giao dịch cơ sở dữ liệu
-     * 
-     * @param ex ngoại lệ liên quan đến giao dịch cơ sở dữ liệu
-     * @return {@link ResponseEntity} chứa {@link CustomResponse} với mã trạng thái
-     *         500
+     * Xử lý lỗi khi xảy ra sự cố trong giao dịch hoặc truy cập cơ sở dữ liệu.
+     *
+     * @param ex Ngoại lệ liên quan đến database như DataAccessException,
+     *           TransactionException
+     * @return ResponseEntity chứa thông tin lỗi và mã trạng thái 500
      */
-    @ExceptionHandler(value = { DataAccessException.class, TransactionException.class })
+    @ExceptionHandler({ DataAccessException.class, TransactionException.class })
     public ResponseEntity<CustomResponse<Object>> handleDatabaseException(Exception ex) {
         logger.error("Database operation failed: {}", ex.getMessage(), ex);
         CustomResponse<Object> res = new CustomResponse<>();
@@ -127,13 +157,12 @@ public class GlobalException {
     }
 
     /**
-     * Xử lý các ngoại lệ RuntimeException chung.
-     * Bắt những ngoại lệ không được xử lý bởi các handler cụ thể khác
+     * Xử lý các lỗi không xác định trong hệ thống (RuntimeException chưa được
+     * catch).
      *
-     * @param ex      ngoại lệ RuntimeException được ném
-     * @param request thông tin yêu cầu HTTP
-     * @return {@link ResponseEntity} chứa thông tin lỗi định dạng theo
-     *         CustomResponse
+     * @param ex      Ngoại lệ Runtime
+     * @param request Thông tin về HTTP request
+     * @return ResponseEntity chứa thông tin lỗi và mã trạng thái 500
      */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<CustomResponse<Object>> handleRuntimeException(RuntimeException ex, WebRequest request) {
