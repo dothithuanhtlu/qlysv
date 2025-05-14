@@ -1,24 +1,38 @@
-package com.restful.quanlysinhvien.service_impl;
+package com.restful.quanlysinhvien.services;
 
 import com.restful.quanlysinhvien.domain.dto.ResultPaginationDTO;
 import com.restful.quanlysinhvien.domain.dto.StudentDTO;
 import com.restful.quanlysinhvien.domain.dto.StudentUpdateDTO;
+import com.restful.quanlysinhvien.util.error.BadRequestExceptionCustom;
 import com.restful.quanlysinhvien.util.error.DuplicateResourceException;
 import com.restful.quanlysinhvien.util.error.ResourceNotFoundException;
 import com.restful.quanlysinhvien.util.error.StoredProcedureFailedException;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 
-public interface StudentImplService {
+public interface IStudentService {
+
+        /**
+         * Lấy danh sách sinh viên theo phân trang (nếu có) hoặc toàn bộ nếu không có
+         * phân trang.
+         *
+         * @param currentOptional  Optional chứa số trang hiện tại (current)
+         * @param pageSizeOptional Optional chứa kích thước mỗi trang (pageSize)
+         * @return Object - có thể là danh sách sinh viên hoặc đối tượng phân trang tùy
+         *         theo tham số
+         * @throws BadRequestExceptionCustom nếu tham số không hợp lệ
+         */
+        public Object getAll(Optional<String> currentOptional, Optional<String> pageSizeOptional);
 
         /**
          * Lấy danh sách tất cả sinh viên trong hệ thống.
          *
          * @return Danh sách StudentDTO chứa thông tin tất cả sinh viên
          */
-        List<StudentDTO> getAllStu();
+        public List<StudentDTO> getAllStu();
 
         /**
          * Lấy danh sách sinh viên có phân trang.
@@ -28,7 +42,7 @@ public interface StudentImplService {
          * @return Đối tượng ResultPaginationDTO chứa danh sách sinh viên và thông tin
          *         phân trang
          */
-        ResultPaginationDTO getAllStuPag(Pageable pageable);
+        public ResultPaginationDTO getAllStuPag(Pageable pageable);
 
         /**
          * Lấy thông tin sinh viên theo mã sinh viên.
@@ -38,7 +52,7 @@ public interface StudentImplService {
          * @throws ResourceNotFoundException Nếu không tìm thấy sinh viên với mã đã cung
          *                                   cấp
          */
-        StudentDTO getStuByStuCode(String stuCode) throws ResourceNotFoundException;
+        public StudentDTO getStuByStuCode(String stuCode) throws ResourceNotFoundException;
 
         /**
          * Xóa sinh viên khỏi hệ thống theo mã sinh viên.
@@ -47,7 +61,7 @@ public interface StudentImplService {
          * @throws ResourceNotFoundException Nếu không tìm thấy sinh viên với mã đã cung
          *                                   cấp
          */
-        void deleteStuByStuCode(String stuCode) throws ResourceNotFoundException;
+        public void deleteStuByStuCode(String stuCode) throws ResourceNotFoundException;
 
         /**
          * Cập nhật thông tin sinh viên.
@@ -60,8 +74,9 @@ public interface StudentImplService {
          *                                        khác
          * @throws StoredProcedureFailedException Nếu việc cập nhật thất bại (ví dụ lớp
          *                                        đã đầy)
+         * @return đối tượng {@link StudentDTO} chứa thông tin tương ứng
          */
-        void updateStu(StudentUpdateDTO studentUpdateDTO, String stuCode)
+        public StudentDTO updateStu(StudentUpdateDTO studentUpdateDTO, String stuCode)
                         throws ResourceNotFoundException, StoredProcedureFailedException, DuplicateResourceException;
 
         /**
@@ -73,7 +88,8 @@ public interface StudentImplService {
          * @throws DuplicateResourceException     Nếu mã sinh viên hoặc email đã tồn tại
          * @throws StoredProcedureFailedException Nếu việc tạo sinh viên thất bại (ví dụ
          *                                        lớp đã đầy)
+         * @return đối tượng {@link StudentDTO} chứa thông tin tương ứng
          */
-        void createStu(StudentDTO studentDTO)
+        public StudentDTO createStu(StudentDTO studentDTO)
                         throws ResourceNotFoundException, StoredProcedureFailedException, DuplicateResourceException;
 }

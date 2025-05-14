@@ -8,10 +8,13 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema
 public class StudentUpdateDTO {
     @NotBlank(message = "Full name cannot be blank")
     private String fullName;

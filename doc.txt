@@ -1,0 +1,7 @@
+-domain: @getter, @setter với id tự tăng thì k cho phép truy cập setter id(done)
+- interface k được để default (done)
+- api tạo 1 object k để "s"//(will do or no)
+-hard code và k trả về data cho create, update (done) với các tên procedure cần const 
+-manytoone,... thì phải thêm kiểu Lazy hay ...(done)
+--controller không throws exception (done)
+--swagger cần cmt các status code có thể xảy ra (done)

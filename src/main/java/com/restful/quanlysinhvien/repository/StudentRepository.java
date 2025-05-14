@@ -71,7 +71,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
          * @param stuCode     mã sinh viên
          * @param result      kết quả học tập của sinh viên
          */
-        @Query(value = "CALL update_stu(:p_class_id, :p_full_name, :p_email, :p_date_of_birth, :p_address, :p_gender, :p_stu_code, :p_result)", nativeQuery = true)
+        @Query(value = "CALL ConstVariable.PROCEDURE_UPDATE_STU(:p_class_id, :p_full_name, :p_email, :p_date_of_birth, :p_address, :p_gender, :p_stu_code, :p_result)", nativeQuery = true)
         void updateStudent(
                         @Param("p_class_id") Long classId,
                         @Param("p_full_name") String fullName,
@@ -94,7 +94,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
          * @param stuCode     mã sinh viên
          * @param result      kết quả học tập của sinh viên
          */
-        @Query(value = "CALL create_stu(:p_class_id, :p_full_name, :p_email, :p_date_of_birth, :p_address, :p_gender, :p_stu_code, :p_result)", nativeQuery = true)
+        @Query(value = "CALL ConstVariable.PROCEDURE_CREATE_STU(:p_class_id, :p_full_name, :p_email, :p_date_of_birth, :p_address, :p_gender, :p_stu_code, :p_result)", nativeQuery = true)
         void createStudent(
                         @Param("p_class_id") Long classId,
                         @Param("p_full_name") String fullName,
@@ -110,6 +110,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
          *
          * @param stuCode mã sinh viên cần xóa
          */
-        @Query(value = "CALL delete_stu(:stuCode, 1)", nativeQuery = true)
+        @Query(value = "CALL ConstVariable.PROCEDURE_DELETE_STU(:stuCode, 1)", nativeQuery = true)
         void deleteByStudentCodeProcedure(@Param("stuCode") String stuCode);
 }

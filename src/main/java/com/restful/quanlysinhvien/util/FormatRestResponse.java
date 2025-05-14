@@ -4,7 +4,6 @@ import com.restful.quanlysinhvien.domain.CustomResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -68,7 +67,15 @@ public class FormatRestResponse implements ResponseBodyAdvice<Object> {
             Class<? extends HttpMessageConverter<?>> selectedConverterType,
             ServerHttpRequest request, ServerHttpResponse response) {
 
-        // Tránh format cho chuỗi vì có thể gây lỗi khi chuyển đổi sang JSON
+        // lay statusCode
+        HttpServletResponse servletResponse = ((ServletServerHttpResponse) response).getServletResponse();
+        int status = servletResponse.getStatus();
+
+        CustomResponse<Object> res = new CustomResponse<Object>();
+        res.setStatusCode(status);
+
+        // nếu data thuộc dạng String thì k thể chuyển sang json được, phải trả về data
+        // luôn.
         if (body instanceof String) {
             return body;
         }
@@ -80,47 +87,12 @@ public class FormatRestResponse implements ResponseBodyAdvice<Object> {
                 return body;
             }
         }
-
-        // Nếu đã là CustomResponse thì không cần format lại
-        if (body instanceof CustomResponse) {
+        if (status >= 400) {
             return body;
-        }
-
-        // Nếu là ResponseEntity thì xử lý đặc biệt để tránh lồng ghép nhiều lớp
-        if (body instanceof ResponseEntity) {
-            ResponseEntity<?> responseEntity = (ResponseEntity<?>) body;
-            Object responseBody = responseEntity.getBody();
-
-            // Nếu bên trong đã là CustomResponse thì giữ nguyên
-            if (responseBody instanceof CustomResponse) {
-                return body;
-            }
-
-            // Tạo CustomResponse từ ResponseEntity
-            CustomResponse<Object> formattedResponse = new CustomResponse<>();
-            formattedResponse.setStatusCode(responseEntity.getStatusCodeValue());
-            formattedResponse.setData(responseBody);
-            formattedResponse.setMessage("Call api success");
-
-            return ResponseEntity.status(responseEntity.getStatusCode()).body(formattedResponse);
-        }
-
-        // Nếu không phải ResponseEntity, lấy status code từ response thật
-        HttpServletResponse servletResponse = ((ServletServerHttpResponse) response).getServletResponse();
-        int status = servletResponse.getStatus();
-
-        // Định dạng response thông thường
-        CustomResponse<Object> formattedResponse = new CustomResponse<>();
-        formattedResponse.setStatusCode(status);
-
-        if (status < 400) {
-            formattedResponse.setData(body);
-            formattedResponse.setMessage("Call api success");
         } else {
-            formattedResponse.setError("Error occurred");
-            formattedResponse.setMessage(body != null ? body.toString() : "Unknown error");
+            res.setData(body);
+            res.setMessage("Call api success");
         }
-
-        return formattedResponse;
+        return res;
     }
 }

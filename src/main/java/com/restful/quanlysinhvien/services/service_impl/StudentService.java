@@ -1,4 +1,4 @@
-package com.restful.quanlysinhvien.services;
+package com.restful.quanlysinhvien.services.service_impl;
 
 import com.restful.quanlysinhvien.domain.ClassRoom;
 import com.restful.quanlysinhvien.domain.Student;
@@ -8,7 +8,7 @@ import com.restful.quanlysinhvien.domain.dto.StudentDTO;
 import com.restful.quanlysinhvien.domain.dto.StudentUpdateDTO;
 import com.restful.quanlysinhvien.repository.ClassRoomRepository;
 import com.restful.quanlysinhvien.repository.StudentRepository;
-import com.restful.quanlysinhvien.service_impl.StudentImplService;
+import com.restful.quanlysinhvien.util.error.BadRequestExceptionCustom;
 import com.restful.quanlysinhvien.util.error.DuplicateResourceException;
 import com.restful.quanlysinhvien.util.error.ResourceNotFoundException;
 import com.restful.quanlysinhvien.util.error.StoredProcedureFailedException;
@@ -20,18 +20,64 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class StudentService implements StudentImplService {
+public class StudentService implements com.restful.quanlysinhvien.services.IStudentService {
     private final StudentRepository studentRepository;
     private final ClassRoomRepository classRoomRepository;
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
+
+    /**
+     * Lấy danh sách sinh viên theo phân trang (nếu có) hoặc toàn bộ nếu không có
+     * phân trang.
+     *
+     * @param currentOptional  Optional chứa số trang hiện tại (current)
+     * @param pageSizeOptional Optional chứa kích thước mỗi trang (pageSize)
+     * @return Object - có thể là danh sách sinh viên hoặc đối tượng phân trang tùy
+     *         theo tham số
+     * @throws BadRequestExceptionCustom nếu tham số không hợp lệ
+     */
+    public Object getAll(Optional<String> currentOptional, Optional<String> pageSizeOptional) {
+
+        // Nếu cả hai tham số đều không có, trả về toàn bộ danh sách sinh viên
+        if (!currentOptional.isPresent() && !pageSizeOptional.isPresent()) {
+            return this.getAllStu();
+        }
+
+        // Nếu chỉ có một trong hai tham số, thì báo lỗi vì cần cả hai để phân trang
+        if (!currentOptional.isPresent() || !pageSizeOptional.isPresent()) {
+            throw new BadRequestExceptionCustom("Both current and pageSize must be provided");
+        }
+
+        try {
+            // Parse giá trị current và pageSize từ String sang Integer
+            int current = Integer.parseInt(currentOptional.get());
+            int pageSize = Integer.parseInt(pageSizeOptional.get());
+
+            // Kiểm tra current và pageSize phải lớn hơn 0
+            if (current <= 0 || pageSize <= 0) {
+                throw new BadRequestExceptionCustom("Page and size must be positive");
+            }
+
+            // Tạo Pageable, lưu ý trừ đi 1 vì Page bắt đầu từ 0
+            Pageable pageable = PageRequest.of(current - 1, pageSize);
+
+            // Trả về dữ liệu đã phân trang
+            return this.getAllStuPag(pageable);
+
+        } catch (NumberFormatException e) {
+            // Nếu parse lỗi (ví dụ nhập chữ thay vì số), thì báo lỗi
+            throw new BadRequestExceptionCustom("Invalid current or pageSize");
+        }
+    }
 
     /**
      * Lấy danh sách tất cả sinh viên trong hệ thống.
@@ -214,10 +260,11 @@ public class StudentService implements StudentImplService {
      * @throws DuplicateResourceException     nếu email mới đã thuộc về sinh viên
      *                                        khác
      * @throws StoredProcedureFailedException nếu quá trình cập nhật thất bại
+     * @return đối tượng {@link StudentDTO} chứa thông tin tương ứng
      */
     @Override
     @Transactional
-    public void updateStu(StudentUpdateDTO studentUpdateDTO, String stuCode) {
+    public StudentDTO updateStu(StudentUpdateDTO studentUpdateDTO, String stuCode) {
 
         // Validate inputs
         validateStudentNotExist(stuCode);
@@ -252,6 +299,15 @@ public class StudentService implements StudentImplService {
         if (result == 0) {
             throw new StoredProcedureFailedException("Failed to update student - possibly class is full");
         }
+        StudentDTO s = new StudentDTO();
+        s.setStudentCode(stuCode);
+        s.setAddress(studentUpdateDTO.getAddress());
+        s.setDateOfBirth(studentUpdateDTO.getDateOfBirth());
+        s.setEmail(studentUpdateDTO.getEmail());
+        s.setFullName(studentUpdateDTO.getFullName());
+        s.setGender(studentUpdateDTO.getGender());
+        s.setClassName(studentUpdateDTO.getClassName());
+        return s;
     }
 
     /**
@@ -261,10 +317,11 @@ public class StudentService implements StudentImplService {
      * @throws ResourceNotFoundException      nếu không tìm thấy lớp học
      * @throws DuplicateResourceException     nếu mã sinh viên hoặc email đã tồn tại
      * @throws StoredProcedureFailedException nếu quá trình tạo mới thất bại
+     * @return đối tượng {@link StudentDTO} chứa thông tin tương ứng
      */
     @Override
     @Transactional
-    public void createStu(StudentDTO studentDTO)
+    public StudentDTO createStu(StudentDTO studentDTO)
             throws DuplicateResourceException, ResourceNotFoundException {
         validateStudentNotDuplicate(studentDTO.getStudentCode());
         validateEmailForCreate(studentDTO.getEmail());
@@ -295,6 +352,7 @@ public class StudentService implements StudentImplService {
         if (result == 0) {
             throw new StoredProcedureFailedException("Failed to create student - possibly class is full");
         }
+        return studentDTO;
     }
 
 }

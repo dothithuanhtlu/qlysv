@@ -9,11 +9,14 @@ import lombok.*;
 
 import java.time.LocalDate;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Schema
 public class StudentDTO {
     @NotBlank(message = "StudentCode cannot be blank")
     private String studentCode;

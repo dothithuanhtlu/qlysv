@@ -20,6 +20,8 @@ import java.time.LocalDate;
 public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // khóa setter của id khong cho phep truy cap
+    @Setter(AccessLevel.NONE)
     private long id;
 
     @Column(unique = true, nullable = false)
@@ -44,7 +46,7 @@ public class Student {
     @NotBlank(message = "Gender cannot be blank")
     private String gender;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_room_id")
     private ClassRoom classRoom;
 }
