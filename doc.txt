@@ -5,3 +5,10 @@
 -manytoone,... thì phải thêm kiểu Lazy hay ...(done)
 --controller không throws exception (done)
 --swagger cần cmt các status code có thể xảy ra (done)
+--connect db: pass,... phai lay bien moi truong
+
+
+
+--login lay token sau do phan quyen
+b1: enum: user(role) pemissions(ten, httpmethod, endpoint, co the description) xu ly trước khi vào api(controller) , user_pemission.  
+b2: database(role, pemission, role_permissions)
