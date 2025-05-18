@@ -29,6 +29,6 @@ public class ClassRoom {
     private Integer maxStudents;
     private Integer currentStudents;
 
-    @OneToMany(mappedBy = "classRoom", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "classRoom")
     private List<Student> students;
 }

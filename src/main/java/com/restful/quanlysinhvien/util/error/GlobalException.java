@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -173,5 +175,16 @@ public class GlobalException {
         res.setError("Unexpected Error");
         res.setMessage(ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
+    }
+
+    @ExceptionHandler(value = { UsernameNotFoundException.class,
+            BadCredentialsException.class })
+    public ResponseEntity<CustomResponse<Object>> handleLoginException(
+            Exception ex) {
+        CustomResponse<Object> res = new CustomResponse<Object>();
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        res.setError(ex.getMessage());
+        res.setMessage("Loi");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 }

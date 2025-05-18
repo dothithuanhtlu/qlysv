@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -34,6 +35,7 @@ public class StudentService implements com.restful.quanlysinhvien.services.IStud
     private final StudentRepository studentRepository;
     private final ClassRoomRepository classRoomRepository;
     private final EntityManager entityManager;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Lấy danh sách sinh viên theo phân trang (nếu có) hoặc toàn bộ nếu không có
@@ -243,10 +245,12 @@ public class StudentService implements com.restful.quanlysinhvien.services.IStud
                 .studentCode(student.getStudentCode())
                 .fullName(student.getFullName())
                 .email(student.getEmail())
+                .password(student.getPassword())
                 .dateOfBirth(student.getDateOfBirth())
                 .address(student.getAddress())
                 .gender(student.getGender())
                 .className(student.getClassRoom().getClassName())
+                .roleId(student.getRole().getId())
                 .build();
     }
 
@@ -271,26 +275,31 @@ public class StudentService implements com.restful.quanlysinhvien.services.IStud
         validateEmailForUpdate(studentUpdateDTO.getEmail(), stuCode);
 
         ClassRoom classRoom = validateClassNameNotExist(studentUpdateDTO.getClassName());
-
+        String hashPassword = passwordEncoder.encode(studentUpdateDTO.getPassword());
+        studentUpdateDTO.setPassword(hashPassword);
         // Using EntityManager for more control
         StoredProcedureQuery query = entityManager
                 .createStoredProcedureQuery("update_stu")
                 .registerStoredProcedureParameter("p_class_id", Long.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_full_name", String.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN)
+                .registerStoredProcedureParameter("p_password", String.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_date_of_birth", Date.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_address", String.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_gender", String.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_stu_code", String.class, ParameterMode.IN)
+                .registerStoredProcedureParameter("p_role_id", Long.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_Result", Integer.class, ParameterMode.OUT)
 
                 .setParameter("p_class_id", classRoom.getId())
                 .setParameter("p_full_name", studentUpdateDTO.getFullName())
                 .setParameter("p_email", studentUpdateDTO.getEmail())
+                .setParameter("p_password", hashPassword)
                 .setParameter("p_date_of_birth", java.sql.Date.valueOf(studentUpdateDTO.getDateOfBirth()))
                 .setParameter("p_address", studentUpdateDTO.getAddress())
                 .setParameter("p_gender", studentUpdateDTO.getGender())
-                .setParameter("p_stu_code", stuCode);
+                .setParameter("p_stu_code", stuCode)
+                .setParameter("p_role_id", studentUpdateDTO.getRoleId());
 
         query.execute();
 
@@ -304,9 +313,11 @@ public class StudentService implements com.restful.quanlysinhvien.services.IStud
         s.setAddress(studentUpdateDTO.getAddress());
         s.setDateOfBirth(studentUpdateDTO.getDateOfBirth());
         s.setEmail(studentUpdateDTO.getEmail());
+        s.setPassword(hashPassword);
         s.setFullName(studentUpdateDTO.getFullName());
         s.setGender(studentUpdateDTO.getGender());
         s.setClassName(studentUpdateDTO.getClassName());
+        s.setRoleId(studentUpdateDTO.getRoleId());
         return s;
     }
 
@@ -326,24 +337,30 @@ public class StudentService implements com.restful.quanlysinhvien.services.IStud
         validateStudentNotDuplicate(studentDTO.getStudentCode());
         validateEmailForCreate(studentDTO.getEmail());
         ClassRoom classRoom = validateClassNameNotExist(studentDTO.getClassName());
+        String hashPassword = passwordEncoder.encode(studentDTO.getPassword());
+        studentDTO.setPassword(hashPassword);
         StoredProcedureQuery query = entityManager
                 .createStoredProcedureQuery("create_stu")
                 .registerStoredProcedureParameter("p_class_id", Long.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_full_name", String.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN)
+                .registerStoredProcedureParameter("p_password", String.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_date_of_birth", Date.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_address", String.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_gender", String.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_stu_code", String.class, ParameterMode.IN)
+                .registerStoredProcedureParameter("p_role_id", Long.class, ParameterMode.IN)
                 .registerStoredProcedureParameter("p_Result", Integer.class, ParameterMode.OUT)
 
                 .setParameter("p_class_id", classRoom.getId())
                 .setParameter("p_full_name", studentDTO.getFullName())
                 .setParameter("p_email", studentDTO.getEmail())
+                .setParameter("p_password", hashPassword)
                 .setParameter("p_date_of_birth", java.sql.Date.valueOf(studentDTO.getDateOfBirth()))
                 .setParameter("p_address", studentDTO.getAddress())
                 .setParameter("p_gender", studentDTO.getGender())
-                .setParameter("p_stu_code", studentDTO.getStudentCode());
+                .setParameter("p_stu_code", studentDTO.getStudentCode())
+                .setParameter("p_role_id", studentDTO.getRoleId());
 
         query.execute();
 
@@ -355,4 +372,7 @@ public class StudentService implements com.restful.quanlysinhvien.services.IStud
         return studentDTO;
     }
 
+    public Student findStudentByUsername(String username) {
+        return this.studentRepository.findOneByStudentCode(username);
+    }
 }

@@ -71,15 +71,17 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
          * @param stuCode     mã sinh viên
          * @param result      kết quả học tập của sinh viên
          */
-        @Query(value = "CALL ConstVariable.PROCEDURE_UPDATE_STU(:p_class_id, :p_full_name, :p_email, :p_date_of_birth, :p_address, :p_gender, :p_stu_code, :p_result)", nativeQuery = true)
+        @Query(value = "CALL ConstVariable.PROCEDURE_UPDATE_STU(:p_class_id, :p_full_name, :p_email, :p_password, :p_date_of_birth, :p_address, :p_gender, :p_stu_code, :p_role_id, :p_result)", nativeQuery = true)
         void updateStudent(
                         @Param("p_class_id") Long classId,
                         @Param("p_full_name") String fullName,
                         @Param("p_email") String email,
+                        @Param("p_password") String password,
                         @Param("p_date_of_birth") Date dateOfBirth,
                         @Param("p_address") String address,
                         @Param("p_gender") String gender,
                         @Param("p_stu_code") String stuCode,
+                        @Param("p_role_id") long roleId,
                         @Param("p_result") Integer result);
 
         /**
@@ -94,15 +96,17 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
          * @param stuCode     mã sinh viên
          * @param result      kết quả học tập của sinh viên
          */
-        @Query(value = "CALL ConstVariable.PROCEDURE_CREATE_STU(:p_class_id, :p_full_name, :p_email, :p_date_of_birth, :p_address, :p_gender, :p_stu_code, :p_result)", nativeQuery = true)
+        @Query(value = "CALL ConstVariable.PROCEDURE_CREATE_STU(:p_class_id, :p_full_name, :p_email, :p_password, :p_date_of_birth, :p_address, :p_gender, :p_stu_code, :p_role_id, :p_result)", nativeQuery = true)
         void createStudent(
                         @Param("p_class_id") Long classId,
                         @Param("p_full_name") String fullName,
                         @Param("p_email") String email,
+                        @Param("p_password") String password,
                         @Param("p_date_of_birth") Date dateOfBirth,
                         @Param("p_address") String address,
                         @Param("p_gender") String gender,
                         @Param("p_stu_code") String stuCode,
+                        @Param("p_role_id") long roleId,
                         @Param("p_result") Integer result);
 
         /**

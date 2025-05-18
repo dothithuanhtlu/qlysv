@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -14,8 +15,8 @@ import java.time.LocalDate;
 @Table(name = "students")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class Student {
     @Id
@@ -35,6 +36,10 @@ public class Student {
     @NotBlank(message = "Email mustn't be empty")
     private String email;
 
+    @NotBlank(message = "Password cannot be blank")
+    @Size(min = 5, message = "Password must be at least 5 characters long")
+    private String password;
+
     @Past(message = "Birth date must be in the past")
     @NotNull(message = "dateOfBirth cannot be blank")
     private LocalDate dateOfBirth;
@@ -49,4 +54,8 @@ public class Student {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_room_id")
     private ClassRoom classRoom;
+
+    @ManyToOne(fetch = FetchType.LAZY) // Many-to-One: Mỗi Student thuộc về 1 Role
+    @JoinColumn(name = "role_id") // Tạo cột role_id trong bảng students
+    private Role role; // Đúng: Mỗi Student chỉ có 1 Role
 }

@@ -42,6 +42,14 @@ import java.util.Optional;
 public class StudentController {
         private final StudentService studentService;
 
+        // @PostMapping("/hehe")
+        // public ResponseEntity<LoginDTO> getLogin(@Valid @RequestBody LoginDTO
+        // loginDTO) {
+        // System.out.println("Username: " + loginDTO.getUsername());
+        // System.out.println("Password: " + loginDTO.getPassword());
+        // return ResponseEntity.ok(loginDTO);
+        // }
+
         /**
          * API lấy danh sách sinh viên có hỗ trợ phân trang.
          * Nếu không truyền current và pageSize thì trả toàn bộ danh sách.
